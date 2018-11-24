@@ -1,4 +1,4 @@
-# GAN-QP
+# Generative Adversarial Network with Quadratic Potential
 
 ### References
 - GAN-QP: A Novel GAN Framework without Gradient Vanishing and Lipschitz Constraint [[arXiv](https://arxiv.org/abs/1811.07296)]
