@@ -13,6 +13,7 @@ TRAIN = False
 
 # Some other configurations
 DATASET = 'celeba'
+N_CHANNELS = 3
 BEGIN_ITER = 0
 TOTAL_ITERS = 1000000
 ITERS_PER_LOG = 1
