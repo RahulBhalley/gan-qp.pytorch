@@ -17,18 +17,18 @@ I trained the images on [128](https://github.com/rahulbhalley/gan-qp.pytorch/blo
 **Note**: Training is not yet complete! And maybe that's why results are not that good. I'll try to update these images when I'm done.
 
 ### 128 Resolution
-#### CelebA
+#### CelebFaces
 ![](https://raw.githubusercontent.com/rahulbhalley/gan-qp.pytorch/master/imgs/celeba-128.png)
 
 #### LSUN Bedrooms
 ![](https://raw.githubusercontent.com/rahulbhalley/gan-qp.pytorch/master/imgs/lsun-128.png)
 
 ### 256 Resolution
-#### CelebA
+#### CelebFaces
 ![](https://raw.githubusercontent.com/rahulbhalley/gan-qp.pytorch/master/imgs/celeba-256.png)
 
 ### 512 Resolution
-#### CelebA
+#### CelebFaces
 ![](https://raw.githubusercontent.com/rahulbhalley/gan-qp.pytorch/master/imgs/celeba-512.png)
 
 ## References
