@@ -13,18 +13,13 @@ import torch.nn as nn
 import torch.optim as optim
 
 from config import *
-if RESIDUAL:
-    if IMG_DIM == 64:
-        from res_gan_qp_64 import GenResNet as Generator, CriticResNetProjection as Discriminator
-    elif IMG_DIM == 128:
-        from res_gan_qp_128 import GenResNet as Generator, CriticResNetProjection as Discriminator
-else:
-    if IMG_DIM == 128:
-        from gan_qp_128 import *
-    elif IMG_DIM == 256:
-        from gan_qp_256 import *
-    elif IMG_DIM == 512:
-        from gan_qp_512 import *
+
+if IMG_DIM == 128:
+    from gan_qp_128 import *
+elif IMG_DIM == 256:
+    from gan_qp_256 import *
+elif IMG_DIM == 512:
+    from gan_qp_512 import *
 
 import torchvision
 import torchvision.transforms as transforms
