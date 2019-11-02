@@ -95,28 +95,28 @@ class Generator(nn.Module):
         # Print the title in a good design
         # for easy recognition.
         print()
-        summary_title = '| {} Summary |'.format(self.__class__.__name__)
+        summary_title = f"| {self.__class__.__name__} Summary |"
         for _ in range(len(summary_title)):
-            print('-', end='')
+            print("-", end="")
         print()
         print(summary_title)
         for _ in range(len(summary_title)):
-            print('-', end='')
-        print('\n')
+            print("-", end="")
+        print("\n")
         
         # Run forward pass while not tracking history on
         # tape using `torch.no_grad()` for printing the
         # output shape of each neural layer operation.
-        print('Input: {}'.format(x.size()))
+        print(f"Input: {x.size()}")
         with torch.no_grad():
             for layer in self.main1:
                 x = layer(x)
-                print('Out: {} \tLayer: {}'.format(x.size(), layer))
+                print(f"Out: {x.size()} \tLayer: {layer}")
             x = x.view(-1, 2048, 4, 4)  # Reshape for convolution
-            print('Out: {} \tLayer: {}'.format(x.size(), 'Reshape'))
+            print(f"Out: {x.size()} \tLayer: Reshape")
             for layer in self.main2:
                 x = layer(x)
-                print('Out: {} \tLayer: {}'.format(x.size(), layer))
+                print(f"Out: {x.size()} \tLayer: {layer}")
 
 
 #################
@@ -205,31 +205,32 @@ class Discriminator(nn.Module):
         # Print the title in a good design
         # for easy recognition.
         print()
-        summary_title = '| {} Summary |'.format(self.__class__.__name__)
+        summary_title = f"| {self.__class__.__name__} Summary |"
         for _ in range(len(summary_title)):
-            print('-', end='')
+            print("-", end="")
         print()
         print(summary_title)
         for _ in range(len(summary_title)):
-            print('-', end='')
-        print('\n')
+            print("-", end="")
+        print("\n")
         
         # Run forward pass while not tracking history on
         # tape using `torch.no_grad()` for printing the
         # output shape of each neural layer operation.
-        print('Input: {}'.format(x.size()))
+        print(f"Input: {x.size()}")
         with torch.no_grad():
             for layer in self.conv:
                 x = layer(x)
-                print('Out: {} \tLayer: {}'.format(x.size(), layer))
+                print(f"Out: {x.size()} \tLayer: {layer}")
             x = x.view(-1, self.num_flat_features(x))  # flatten the conv output
-            print('Out: {} \tlayer: {}'.format(x.size(), 'Reshape: Flatten'))
+            print(f"Out: {x.size()} \tlayer: Reshape (Flatten)")
             x = self.linear(x)
-            print('Out: {} \tLayer: {}'.format(x.size(), layer))
-'''
-g_model = Generator()
-g_model.summary()
+            print(f"Out: {x.size()} \tLayer: {layer}")
 
-d_model= Discriminator()
-d_model.summary()
-#'''
+if __name__ == "__main__":
+
+    g_model = Generator()
+    g_model.summary()
+
+    d_model= Discriminator()
+    d_model.summary()

@@ -14,7 +14,9 @@ import torch.optim as optim
 
 from config import *
 
-if IMG_DIM == 128:
+if IMG_DIM == 64:
+    from gan_qp_64 import *
+elif IMG_DIM == 128:
     from gan_qp_128 import *
 elif IMG_DIM == 256:
     from gan_qp_256 import *
@@ -40,15 +42,15 @@ if TRAIN:
 if not os.path.exists(NORM):
     os.mkdir(NORM)
 # Directory for samples
-if not os.path.exists(os.path.join(NORM, 'samples', str(IMG_DIM))):
-    os.mkdir(os.path.join(NORM, 'samples', str(IMG_DIM)))
-if not os.path.exists(os.path.join(NORM, 'samples', str(IMG_DIM), DATASET)):
-    os.mkdir(os.path.join(NORM, 'samples', str(IMG_DIM), DATASET))
+if not os.path.exists(os.path.join(NORM, "samples", str(IMG_DIM))):
+    os.mkdir(os.path.join(NORM, "samples", str(IMG_DIM)))
+if not os.path.exists(os.path.join(NORM, "samples", str(IMG_DIM), DATASET)):
+    os.mkdir(os.path.join(NORM, "samples", str(IMG_DIM), DATASET))
 # Directory for checkpoints
-if not os.path.exists(os.path.join(NORM, 'checkpoints', str(IMG_DIM))):
-    os.mkdir(os.path.join(NORM, 'checkpoints', str(IMG_DIM)))
-if not os.path.exists(os.path.join(NORM, 'checkpoints', str(IMG_DIM), DATASET)):
-    os.mkdir(os.path.join(NORM, 'checkpoints', str(IMG_DIM), DATASET))
+if not os.path.exists(os.path.join(NORM, "checkpoints", str(IMG_DIM))):
+    os.mkdir(os.path.join(NORM, "checkpoints", str(IMG_DIM)))
+if not os.path.exists(os.path.join(NORM, "checkpoints", str(IMG_DIM), DATASET)):
+    os.mkdir(os.path.join(NORM, "checkpoints", str(IMG_DIM), DATASET))
     
 ####################
 # Load the dataset #
@@ -66,20 +68,20 @@ def load_data():
         ],
     )
 
-    print('Loading dataset...')
-    root = '/Users/rahulbhalley/.torch/datasets/' + DATASET
-    if DATASET == 'cifar-10':
+    print("Loading dataset")
+    root = f"/Users/rahulbhalley/.torch/datasets/{DATASET}"
+    if DATASET == "cifar-10":
         trainset = torchvision.datasets.CIFAR10(root=root, train=True, download=True, transform=transform)
-    elif DATASET == 'cifar-100':
+    elif DATASET == "cifar-100":
         trainset = torchvision.datasets.CIFAR100(root=root, train=True, download=True, transform=transform)
-    elif DATASET == 'mnist':
+    elif DATASET == "mnist":
         trainset = torchvision.datasets.MNIST(root=root, train=True, download=True, transform=transform)
-    elif DATASET == 'fashion-mnist':
+    elif DATASET == "fashion-mnist":
         trainset = torchvision.datasets.FashionMNIST(root=root, train=True, download=True, transform=transform)
     else:
         trainset = torchvision.datasets.ImageFolder(root=root, transform=transform)
     dataloader = torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE, shuffle=True, num_workers=cpu_cores)
-    print('Loaded dataset.')
+    print("Loaded dataset")
 
     def get_infinite_data(dataloader):
         while True:
@@ -96,7 +98,7 @@ if TRAIN:
 ################################################
 
 # Automatic GPU/CPU device placement
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # Create models
 g_model = Generator().to(device)
@@ -111,32 +113,32 @@ d_optim = optim.Adam(d_model.parameters(), 2e-4, betas=(0.5, 0.999))
 ############
 
 def train():
-    print('Begin training!')
+    print("Begin training!")
     # Try loading the latest existing checkpoints based on `BEGIN_ITER`
     try:
         # Checkpoint dirs
-        g_model_dir = os.path.join(NORM, 'checkpoints', DATASET, 'g_model_' + str(BEGIN_ITER) + '.pth')
-        d_model_dir = os.path.join(NORM, 'checkpoints', DATASET, 'd_model_' + str(BEGIN_ITER) + '.pth')
+        g_model_dir = os.path.join(NORM, "checkpoints", DATASET, f"g_model_{BEGIN_ITER}.pth")
+        d_model_dir = os.path.join(NORM, "checkpoints", DATASET, f"d_model_{BEGIN_ITER}.pth")
         # Load checkpoints
-        g_model.load_state_dict(torch.load(g_model_dir, map_location='cpu'))
-        d_model.load_state_dict(torch.load(d_model_dir, map_location='cpu'))
-        print('Loaded the latest checkpoints from {}th iteration.')
-        print('NOTE: Set the `BEGIN_ITER` in accordance to saved checkpoints.')
+        g_model.load_state_dict(torch.load(g_model_dir, map_location="cpu"))
+        d_model.load_state_dict(torch.load(d_model_dir, map_location="cpu"))
+        print(f"Loaded the latest checkpoints from {BEGIN_ITER}th iteration")
+        print("NOTE: Set the `BEGIN_ITER` in accordance to saved checkpoints")
         # Free some memory
         del g_model_dir, d_model_dir
     except:
-        print("Resume: Couldn't load the checkpoints from {}th iteration.".format(BEGIN_ITER))
+        print(f"Resume: Couldn't load the checkpoints from {BEGIN_ITER}th iteration")
 
     # Just to see the learning progress
     fixed_z = torch.randn(BATCH_SIZE, Z_DIM).to(device)
 
-    for i in range(BEGIN_ITER, TOTAL_ITERS+1):
-        # Just because I'm encountering some problem with
+    for i in range(BEGIN_ITER, TOTAL_ITERS + 1):
+        # Just because I"m encountering some problem with
         # the batch size of sampled data with `torchvision`.
         def safe_sampling():
             x_sample = data.next()
             if x_sample.size(0) != BATCH_SIZE:
-                print('Required batch size not equal to x_sample batch size: {} != {} | skipping...'.format(BATCH_SIZE, x_sample.size(0)))
+                print(f"Required batch size not equal to x_sample batch size: {BATCH_SIZE} != {x_sample.size(0)} | skipping...")
                 x_sample = data.next()
             return x_sample.to(device)
 
@@ -164,9 +166,9 @@ def train():
 
             # Compute loss
             d_loss = x_real_score - x_fake_score
-            if NORM == 'l1':
+            if NORM == "l1":
                 d_norm = 10 * (x_sample - x_fake).abs().mean()
-            elif NORM == 'l2':
+            elif NORM == "l2":
                 d_norm = 10 * ((x_sample - x_fake)**2).mean().sqrt()
             d_loss = - d_loss + 0.5 * d_loss**2 / d_norm
             d_loss = d_loss.mean()
@@ -186,7 +188,7 @@ def train():
             param.requires_grad_(True)
         for param in d_model.parameters():
             param.requires_grad_(False)
-        
+
         for j in range(1):
             z_sample = torch.randn(BATCH_SIZE, Z_DIM).to(device) # Sample prior from Gaussian distribution
             x_sample = safe_sampling()
@@ -204,7 +206,7 @@ def train():
 
             # Compute gradients
             g_loss.backward()
-            
+
             # Update the network(s)
             g_optim.step()
 
@@ -214,17 +216,17 @@ def train():
 
         if i % ITERS_PER_LOG == 0:
             # Print statistics
-            print('iter: {}, d_loss: {}, g_loss: {}'.format(i, d_loss, g_loss))
+            print(f"iter: {i}, d_loss: {d_loss}, g_loss: {g_loss}")
             # Save image grids of fake and real images
             with torch.no_grad():
                 samples = g_model(fixed_z)
-            samples_dir = os.path.join(NORM, 'samples', str(IMG_DIM), DATASET, 'test_{}.png'.format(i))
-            real_samples_dir = os.path.join(NORM, 'samples', str(IMG_DIM), DATASET, 'real.png')
+            samples_dir = os.path.join(NORM, "samples", str(IMG_DIM), DATASET, f"test_{i}.png")
+            real_samples_dir = os.path.join(NORM, "samples", str(IMG_DIM), DATASET, "real.png")
             vutils.save_image(samples, samples_dir, normalize=True)
             vutils.save_image(x_sample, real_samples_dir, normalize=True)
             # Checkpoint directories
-            g_model_dir = os.path.join(NORM, 'checkpoints', str(IMG_DIM), DATASET, 'g_model_' + str(i) + '.pth')
-            d_model_dir = os.path.join(NORM, 'checkpoints', str(IMG_DIM), DATASET, 'd_model_' + str(i) + '.pth')
+            g_model_dir = os.path.join(NORM, "checkpoints", str(IMG_DIM), DATASET, f"g_model_{i}.pth")
+            d_model_dir = os.path.join(NORM, "checkpoints", str(IMG_DIM), DATASET, f"d_model_{i}.pth")
             # Save all the checkpoints
             torch.save(g_model.state_dict(), g_model_dir)
             torch.save(d_model.state_dict(), d_model_dir)
@@ -233,103 +235,66 @@ def train():
 
 def infer(epoch, n=10):
     g_model.eval()
-    
     try:
-        g_model_dir = os.path.join(NORM, 'checkpoints', str(IMG_DIM), DATASET, 'g_model_' + str(epoch) + '.pth')
-        g_model.load_state_dict(torch.load(g_model_dir, map_location='cpu'))
+        g_model_dir = os.path.join(NORM, "checkpoints", str(IMG_DIM), DATASET, f"g_model_{epoch}.pth")
+        g_model.load_state_dict(torch.load(g_model_dir, map_location="cpu"))
     except:
-        print("Couldn't load the checkpoint of `g_model`.")
+        print("Couldn't load the checkpoint of `g_model`")
 
     for i in range(n):
         with torch.no_grad():
-            z_sample = torch.randn(BATCH_SIZE, Z_DIM).to(device) # Sample prior from Gaussian distribution
+            z_sample = torch.randn(BATCH_SIZE // 4, Z_DIM).to(device) # Sample prior from Gaussian distribution
             samples = g_model(z_sample)
-        samples_dir = os.path.join(NORM, 'samples', str(IMG_DIM), DATASET, 'sample_{}.png'.format(i))
-        vutils.save_image(samples, samples_dir, normalize=True)
-        print('Saved image: {}'.format(samples_dir))
+        samples_dir = os.path.join(NORM, "samples", str(IMG_DIM), DATASET, f"sample_{i}.png")
+        vutils.save_image(samples, samples_dir, normalize=True, nrow=4)
+        print(f"Saved data: {samples_dir}")
 
-###########################
-# Spherical Interpolation #
-###########################
+#################
+# Interpolation #
+#################
 
-import numpy as np
+def slerp(start, end, val):
+    start_norm = start / torch.norm(start, dim=1, keepdim=True)
+    end_norm = end / torch.norm(end, dim=1, keepdim=True)
+    omega = torch.acos((start_norm * end_norm).sum(1))
+    so = torch.sin(omega)
+    result = (torch.sin((1.0 - val) * omega) / so).unsqueeze(1) * start + (torch.sin(val * omega) / so).unsqueeze(1) * end
+    return result
 
-def slerp(v0, v1, t_array):
-    t_array = np.array(t_array)
-    v0 = np.array(v0)
-    v1 = np.array(v1)
-    dot = np.sum(v0 * v1)
-
-    if dot < 0.0:
-        v1 = -v1
-        dot = -dot
-
-    DOT_THRESHOLD = 0.9995
-    if dot > DOT_THRESHOLD:
-        result = v0[np.newaxis,:] + t_array[:,np.newaxis] * (v1 - v0)[np.newaxis,:]
-        result = result / np.linalg.norm(result)
-        return result
-
-    theta_0 = np.arccos(dot)
-    sin_theta_0 = np.sin(theta_0)
-
-    theta = theta_0 * t_array
-    sin_theta = np.sin(theta)
-
-    s0 = np.cos(theta) - dot * sin_theta / sin_theta_0
-    s1 = sin_theta / sin_theta_0
-    return (s0[:,np.newaxis] * v0[np.newaxis,:]) + (s1[:,np.newaxis] * v1[np.newaxis,:])
-
-
-def interpolate(epoch, mode='lerp', n_latents=1):
+def interpolate(epoch, mode="lerp", n_latents=1):
     g_model.eval()
-
     try:
-        g_model_dir = os.path.join(NORM, 'checkpoints', str(IMG_DIM), DATASET, 'g_model_' + str(epoch) + '.pth')
-        g_model.load_state_dict(torch.load(g_model_dir, map_location='cpu'))
-        print("Loaded the checkpoint of `g_model` at {} epoch.".format(epoch))
+        g_model_dir = os.path.join(NORM, "checkpoints", str(IMG_DIM), DATASET, "g_model_" + str(epoch) + ".pth")
+        g_model.load_state_dict(torch.load(g_model_dir, map_location="cpu"))
+        print(f"Loaded the checkpoint of `g_model` at {epoch} epoch")
     except:
-        print("Couldn't load the checkpoint of `g_model`.")
+        print("Couldn't load the checkpoint of `g_model`")
 
-    if mode == 'lerp':
-
-        z_start = torch.randn(BATCH_SIZE, Z_DIM).to(device)
-        for a in range(n_latents):
-            z_end = torch.randn(BATCH_SIZE, Z_DIM).to(device)
-            z_saver = z_end
-            
-            # Perform interpolation
-            b = 0
-            for i in torch.arange(0., 1.0, 0.05):
-                with torch.no_grad():
-                    z_point = torch.lerp(z_start, z_end, i.item())
-                    sample = g_model(z_point)
-                samples_dir = os.path.join(NORM, 'samples', str(IMG_DIM), DATASET, 'lerp_{}_{}.png'.format(a, b))
-                vutils.save_image(sample, samples_dir, normalize=True)
-                print('Saved image: {}'.format(samples_dir))
-                b += 1
-            a += 1
-            z_start = z_saver
-
-    if mode == 'slerp':
-        z_start = torch.randn(BATCH_SIZE, Z_DIM).numpy()
-        z_end = torch.randn(BATCH_SIZE, Z_DIM).numpy()
-
+    print(f"Performing {mode} interpolation")
+    z_start = torch.randn(BATCH_SIZE, Z_DIM).to(device)
+    for a in range(n_latents):
+        z_end = torch.randn(BATCH_SIZE, Z_DIM).to(device)
+        z_saver = z_end
+        # Perform interpolation
         b = 0
-        for i in torch.arange(0., 1., 0.1):
+        for i in torch.arange(0., 1., 0.05):
             with torch.no_grad():
-                z_point = slerp(z_start, z_end, i.item())
-                z_point = torch.from_numpy(z_point)
+                if mode == "lerp":
+                    z_point = torch.lerp(z_start, z_end, i.item())
+                elif mode == "slerp":
+                    z_point = slerp(z_start, z_end, i.item())
                 sample = g_model(z_point)
-            samples_dir = os.path.join(NORM, 'samples', str(IMG_DIM), DATASET, 'slerp_{}.png'.format(b))
+            samples_dir = os.path.join(NORM, "samples", str(IMG_DIM), DATASET, f"{mode}_{a}_{b}.png")
             vutils.save_image(sample, samples_dir, normalize=True)
-            print('Saved image: {}'.format(samples_dir))
+            print(f"Saved data: {samples_dir}")
             b += 1
+        a += 1
+        z_start = z_saver
 
 if TRAIN:
     # Train the GAN-QP
     train()
 else:
     # Sample from the GAN-QP
-    infer(epoch=31000)
-    #interpolate(epoch=47000, mode='lerp', n_latents=20)
+    # infer(epoch=66000)
+    interpolate(epoch=66000, mode="slerp", n_latents=20)
